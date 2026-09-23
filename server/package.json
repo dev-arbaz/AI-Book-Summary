@@ -1,0 +1,35 @@
+{
+  "name": "ai-book-summary-server",
+  "version": "1.0.0",
+  "description": "Backend API for AI Book Summary - PDF uplaod, processing pipeline, and category-based AI summary generation",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "ai",
+    "book-summary",
+    "pdf",
+    "backend",
+    "nodejs",
+    "express"
+  ],
+  "author": "Blade Co.",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^2.24.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "multer": "^2.3.0",
+    "pdf-parse": "^2.4.5",
+    "uuid": "^14.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
