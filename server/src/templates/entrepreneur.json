@@ -1,0 +1,16 @@
+{
+  "category": "entrepreneur",
+  "skip_optional_sections_without_content": true,
+  "never_invent_business_advice": true,
+  "sections": [
+    { "id": "executive_summary", "title": "Executive Summary", "required": true },
+    { "id": "core_principles", "title": "Core Entrepreneurial Principles", "required": true },
+    { "id": "opportunities", "title": "Business Opportunities & Applications", "required": false, "tier": "medium" },
+    { "id": "leadership_lessons", "title": "Leadership Lessons", "required": false, "tier": "medium" },
+    { "id": "marketing_sales", "title": "Marketing & Sales Insights", "required": false, "tier": "long" },
+    { "id": "execution_systems", "title": "Execution & Business Systems", "required": false, "tier": "long" },
+    { "id": "risks_mistakes", "title": "Risks & Common Mistakes", "required": true },
+    { "id": "actionable_lessons", "title": "Actionable Lessons", "required": true },
+    { "id": "top_takeaways", "title": "Top 10 Key Takeaways", "required": true }
+  ]
+}

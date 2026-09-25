@@ -1,0 +1,16 @@
+{
+  "category": "student",
+  "skip_optional_sections_without_content": true,
+  "never_invent_examples_or_answers": true,
+  "sections": [
+    { "id": "book_overview", "title": "Book Overview", "required": true },
+    { "id": "main_concepts", "title": "Main Concepts", "required": true },
+    { "id": "definitions", "title": "Important Definitions", "required": false, "tier": "medium" },
+    { "id": "chapter_highlights", "title": "Chapter & Section Highlights", "required": false, "tier": "long" },
+    { "id": "simplified_explanation", "title": "Simplified Explanation", "required": true },
+    { "id": "examples_applications", "title": "Examples & Applications", "required": false, "tier": "long" },
+    { "id": "revision_notes", "title": "Revision Notes", "required": true },
+    { "id": "practice_questions", "title": "Practice Questions", "required": true },
+    { "id": "top_takeaways", "title": "Top 10 Key Takeaways", "required": true }
+  ]
+}
