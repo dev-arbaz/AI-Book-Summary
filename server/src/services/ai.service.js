@@ -55,7 +55,12 @@ function buildOutputInstructions(template, summaryLength) {
 }
 
 async function assemblePrompt({ category, summaryLength, documentText }) {
-    const [systemPrompt, universalRules, categoryPrompt, template] = await Promise.all([loadSystemPrompt(), loadUniversalRules(), loadCategoryPrompt(category), loadCategoryTemplate(category)]);
+    const [systemPrompt, universalRules, categoryPrompt, template] = await Promise.all([
+        loadSystemPrompt(), 
+        loadUniversalRules(), 
+        loadCategoryPrompt(category), 
+        loadCategoryTemplate(category)
+    ]);
 
     const outputInstructions = buildOutputInstructions(template, summaryLength);
 
@@ -138,6 +143,9 @@ function validateSummaryStructure(parsed, template, summaryLength) {
         if (!section || typeof section.id !== 'string') {
             throw new AppError(ERROR_CODES.SUMMARY_GENERATION_FAILED, 'A section is missing a valid id.');
         }
+        if (!validIds.has(section.id)) {
+            throw new AppError(ERROR_CODES.SUMMARY_GENERATION_FAILED, `Unknown section id returned: "${section.id}".`);
+        }
         if (seenIds.has(section.id)) {
             throw new AppError(ERROR_CODES.SUMMARY_GENERATION_FAILED, `Duplicate section id returned: "${section.id}".`);
         }
@@ -188,6 +196,8 @@ async function generateSummaryFromText({ category, summaryLength, documentText }
 
     return parsed;
 }
+
+export { buildOutputInstructions, parseJsonResponse, validateSummaryStructure, assemblePrompt };
 
 export async function generateSummary({ category, summaryLength, documentText }) {
   if (documentText.length > CHUNKING_CONFIG.MAX_DOCUMENT_CHARS) {

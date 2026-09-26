@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import path, { parse } from 'node:path';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AppError } from '../utils/AppError.js';
 import { ERROR_CODES } from '../config/constants.js';
