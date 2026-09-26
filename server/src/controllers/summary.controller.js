@@ -1,9 +1,9 @@
-import { CATEGORIES, ERROR_CODES, SUMMARY_LENGTHS } from "../config/constants";
-import { generateSummary } from "../services/ai.service";
-import { getDocument } from "../services/documentstore.service";
-import { AppError } from "../utils/AppError";
-import { logger } from "../utils/logger";
-import { sendSuccess } from "../utils/responseFormatter";
+import { CATEGORIES, ERROR_CODES, SUMMARY_LENGTHS } from "../config/constants.js";
+import { generateSummary } from "../services/ai.service.js";
+import { getDocument } from "../services/documentStore.service.js";
+import { AppError } from "../utils/AppError.js";
+import { logger } from "../utils/logger.js";
+import { sendSuccess } from "../utils/responseFormatter.js";
 
 export async function createSummary(req, res) {
     const { documentId, category, summaryLength = 'medium' } = req.body;

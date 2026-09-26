@@ -188,3 +188,18 @@ async function generateSummaryFromText({ category, summaryLength, documentText }
 
     return parsed;
 }
+
+export async function generateSummary({ category, summaryLength, documentText }) {
+  if (documentText.length > CHUNKING_CONFIG.MAX_DOCUMENT_CHARS) {
+    throw new AppError(
+      ERROR_CODES.DOCUMENT_TOO_LARGE_TO_PROCESS,
+      `This document exceeds the maximum supported size of ${CHUNKING_CONFIG.MAX_DOCUMENT_CHARS.toLocaleString()} characters.`,
+    );
+  }
+
+  if (documentText.length > AI_CONFIG.CHUNK_THRESHOLD_CHARS) {
+    return generateSummaryForLargeDocument({ category, summaryLength, documentText });
+  }
+
+  return generateSummaryFromText({ category, summaryLength, documentText });
+}
