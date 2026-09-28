@@ -1,6 +1,7 @@
-import { ERROR_CODES } from "../config/constants.js";
+import { CHUNKING_CONFIG, ERROR_CODES } from "../config/constants.js";
 import { AppError } from "../utils/AppError.js";
 import { logger } from "../utils/logger.js";
+import { sleep, withRetry } from "../utils/retry.js";
 import { loadCategoryPrompt, loadCategoryTemplate, loadSystemPrompt, loadUniversalRules } from "./promptLoader.service.js";
 
 let client = null;
@@ -195,6 +196,72 @@ async function generateSummaryFromText({ category, summaryLength, documentText }
     }
 
     return parsed;
+}
+
+// map step — condense one chunk, category-neutral
+async function digestChunk(chunkText, chunkIndex, chunkTotal) {
+    const [systemPrompt, universalRules, digestTemplate] = await Promise.all([
+        loadSystemPrompt(),
+        loadUniversalRules(),
+        loadChunkDigestPrompt(),
+    ]);
+
+    const systemInstruction = [systemPrompt, universalRules].join('\n\n---\n\n');
+    const userPrompt = digestTemplate.replace('{chunkIndex}', String(chunkIndex + 1)).replace('{chunkTotal}', String(chunkTotal)).replace('{chunkText}', chunkText);
+
+    return callGeminiApi({ systemInstruction, userPrompt, jsonMode: false });
+}
+
+// Exposed with a `digestFn` override so the pacing/retry loop itself can be
+// unit-tested with a fake, network-free digest function.
+export async function mapChunksToDigests(chunks, { digestFn = digestChunk } = {}) {
+    const digests = [];
+
+    for (let i = 0; i < chunks.length; i++) {
+        const digest = await withRetry(
+            () => digestFn(chunks[i], i, chunks.length),
+            {
+                backoffMs: CHUNKING_CONFIG.RETRY_BACKOFF_MS,
+                isRetryable: (err) => err.code === ERROR_CODES.AI_TIMEOUT,
+                onRetry: ({ attempt, delay, error }) => {
+                    logger.warn('Chunk digest failed, retrying', { chunkIndex: i, attempt, delay, error: error.message });
+                },
+            },
+        );
+        digests.push(digest);
+        
+        // Pace ourselves proactively; no need to wait after the last chunk.
+        if (i < chunks.length - 1) await sleep(CHUNKING_CONFIG.CALL_DELAY_MS);
+    }
+
+    return digests;
+}
+
+// reduce step — combine digests into one knowledge base
+export function reduceDigestsToKnowledgeBase(digests) {
+    return digests.map((digest, i) => `[Section ${i + 1} of ${digests.length}]\n${digest}`).join('\n\n');
+}
+
+// full large-document pipeline
+async function generateSummaryForLargeDocument({ category, summaryLength, documentText }) {
+    const chunks = splitIntoChunks(documentText, { chunkSizeChars: CHUNKING_CONFIG.CHUNK_SIZE_CHARS });
+
+    logger.info('Starting chunked map-reduce pipeline', { chunkCount: chunks.length, totalChars: documentText.length });
+
+    let digests;
+    try {
+        digests = await mapChunksToDigests(chunks);
+    } catch (err) {
+        if (err instanceof AppError) throw err;
+        throw new AppError(ERROR_CODES.CHUNK_PROCESSING_FAILED, 'Failed to process one or more sections of this large document.');
+    }
+
+    const knowledgeBase = reduceDigestsToKnowledgeBase(digests);
+
+    const titlePageText = documentText.slice(0, AI_CONFIG.TITLE_EXTRACTION_CHARS);
+    const finalInputText = `${titlePageText}\n\n---\n\n${knowledgeBase}`;
+
+    return generateSummaryFromText({ category, summaryLength, documentText: finalInputText });
 }
 
 export { buildOutputInstructions, parseJsonResponse, validateSummaryStructure, assemblePrompt };
